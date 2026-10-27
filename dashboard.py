@@ -36,20 +36,25 @@ if os.path.exists(LOG_FILE):
             st.subheader("📈 Évolution de la Latence (ms)")
             st.line_chart(df[['duration_ms']])
         with c2:
-            st.subheader("📊 Répartition par Catégorie")
-            st.bar_chart(df['category'].value_counts())
+            st.subheader("📊 Mode de Résolution")
+            if 'resolved_by' in df.columns:
+                st.bar_chart(df['resolved_by'].value_counts())
+            else:
+                st.bar_chart(df['category'].value_counts())
             
         st.divider()
         
         # 3. Table des Traces (Correlation ID)
         st.subheader("📋 Traces en Direct (Correlation ID)")
+        display_cols = ['correlation_id', 'timestamp', 'status', 'category', 'priority', 'resolved_by', 'duration_ms', 'tokens_used']
+        available_cols = [c for c in display_cols if c in df.columns]
         st.dataframe(
-            df[['correlation_id', 'timestamp', 'status', 'category', 'priority', 'duration_ms', 'tokens_used']].iloc[::-1],
+            df[available_cols].iloc[::-1],
             use_container_width=True
         )
         
-        # 4. Documentation des 3 Alertes
-        st.subheader("🔔 Documentation des 3 Alertes de Supervision")
+        # 4. Documentation des Alertes
+        st.subheader("🔔 Documentation des Alertes de Supervision")
         st.markdown("""
         * ⚠️ **Alerte Latence (SLA)** : Déclenchée si `duration_ms > 1500 ms`
         * 🚨 **Alerte Taux d'Échec** : Déclenchée si `status == 'FAILURE'`
@@ -60,6 +65,6 @@ if os.path.exists(LOG_FILE):
 else:
     st.info("Aucun log détecté. Lancez les tests ou l'agent.")
 
-# Rafraîchissement automatique du dashboard toutes les 3 secondes
+# Rafraîchissement automatique toutes les 3 secondes
 time.sleep(3)
 st.rerun()
